@@ -1,27 +1,20 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { ThemeProvider } from 'styled-components';
+import AppRoutes from './src/routes';
+import theme from './src/styles/theme';
+import { StatusBar } from 'react-native';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.textinho}>EU SOU SP</Text>
-      <Text style={styles.textinho}>VAI SÂO PAULO</Text>
-      <StatusBar style="auto" />
-    </View>
+    <ThemeProvider theme={theme}>
+      <NavigationContainer>
+        <StatusBar 
+          barStyle="light-content" 
+          backgroundColor={theme.colors.primary} 
+        />
+        <AppRoutes />
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'black',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 200
-  },
-  textinho:{
-    color: 'white',
-    fontSize: 30,
-    transform: [{rotate: '90deg'}]
-  }
-});
