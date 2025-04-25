@@ -35,7 +35,6 @@ interface Doctor {
   image: string;
 }
 
-// Lista de médicos disponíveis
 const availableDoctors: Doctor[] = [
   {
     id: '1',
@@ -69,6 +68,37 @@ const availableDoctors: Doctor[] = [
   },
 ];
 
+// Função para validar a data
+const isValidFutureDate = (date: string): boolean => {
+  const [day, month, year] = date.split('/').map(Number);
+  if (!day || !month || !year) return false;
+
+  // Validação extra: mês tem que ser entre 1 e 12
+  if (month < 1 || month > 12) return false;
+
+  const inputDate = new Date(year, month - 1, day);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return inputDate > today;
+};
+
+// Função para formatar a data enquanto digita
+const formatDate = (text: string): string => {
+  const cleaned = text.replace(/\D/g, ''); // Remove tudo que não for número
+  let formatted = '';
+
+  if (cleaned.length <= 2) {
+    formatted = cleaned;
+  } else if (cleaned.length <= 4) {
+    formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+  } else {
+    formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4, 8)}`;
+  }
+
+  return formatted;
+};
+
 const CreateAppointmentScreen: React.FC = () => {
   const { user } = useAuth();
   const navigation = useNavigation<CreateAppointmentScreenProps['navigation']>();
@@ -84,11 +114,17 @@ const CreateAppointmentScreen: React.FC = () => {
       setError('');
 
       if (!date || !selectedTime || !selectedDoctor) {
-        setError('Por favor, preencha a data e selecione um médico e horário');
+        setError('Por favor, preencha a data e selecione um médico e horário.');
+        setLoading(false);
         return;
       }
 
-      // Recupera consultas existentes
+      if (!isValidFutureDate(date)) {
+        setError('Data inválida. Verifique o formato DD/MM/AAAA e o mês (01 a 12).');
+        setLoading(false);
+        return;
+      }
+
       const storedAppointments = await AsyncStorage.getItem('@MedicalApp:appointments');
       const appointments: Appointment[] = storedAppointments ? JSON.parse(storedAppointments) : [];
 
@@ -129,9 +165,19 @@ const CreateAppointmentScreen: React.FC = () => {
         <Input
           placeholder="Data (DD/MM/AAAA)"
           value={date}
-          onChangeText={setDate}
+          onChangeText={(text) => {
+            const formatted = formatDate(text);
+            setDate(formatted);
+
+            if (formatted.length === 10 && !isValidFutureDate(formatted)) {
+              setError('Data inválida. Verifique o formato DD/MM/AAAA e o mês (01 a 12).');
+            } else {
+              setError('');
+            }
+          }}
           containerStyle={styles.input}
           keyboardType="numeric"
+          maxLength={10}
         />
 
         <SectionTitle>Selecione um Horário</SectionTitle>
